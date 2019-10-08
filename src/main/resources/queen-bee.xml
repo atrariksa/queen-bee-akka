@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration debug="true"
+	xmlns:log4j='http://jakarta.apache.org/log4j/'>
+
+	<appender name="QUEEN-BEE-DEBUG" class="org.apache.log4j.rolling.RollingFileAppender">
+		<param name="Threshold" value="DEBUG" />
+		<rollingPolicy class="org.apache.log4j.rolling.TimeBasedRollingPolicy">
+			<param name="FileNamePattern" value="C:/Users/DerKaiser/Desktop/QUEEN-BEE/log/debug.%d{yyyy-MM-dd}.log" />
+			<param name="ActiveFileName" value=" C:/Users/DerKaiser/Desktop/QUEEN-BEE/log/debug.log" />
+		</rollingPolicy>
+		<triggeringPolicy class="org.apache.log4j.rolling.SizeBasedTriggeringPolicy">
+			<param name="MaxFileSize" value="10240000" />
+		</triggeringPolicy>
+		<layout class="org.apache.log4j.EnhancedPatternLayout">
+			<param name="ConversionPattern"
+			value="%d{yyyy-MM-dd HH:mm:ss:}%r [%-5p] - %m%n" />
+				<!--value="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n" />-->
+		</layout>
+	</appender>
+	
+	<appender name="QUEEN-BEE-ERROR" class="org.apache.log4j.rolling.RollingFileAppender">
+		<param name="Threshold" value="ERROR" />
+		<rollingPolicy class="org.apache.log4j.rolling.TimeBasedRollingPolicy">
+			<param name="FileNamePattern" value=" C:/Users/DerKaiser/Desktop/QUEEN-BEE/log/error.%d{yyyy-MM-dd}.err" />
+			<param name="ActiveFileName" value=" C:/Users/DerKaiser/Desktop/QUEEN-BEE/log/error.err" />
+		</rollingPolicy>
+		<triggeringPolicy class="org.apache.log4j.rolling.SizeBasedTriggeringPolicy">
+			<param name="MaxFileSize" value="10240000" />
+		</triggeringPolicy>
+		<layout class="org.apache.log4j.EnhancedPatternLayout">
+			<param name="ConversionPattern"
+			value="%d{yyyy-MM-dd HH:mm:ss:}%r [%-5p] - %m%n" />
+				<!--value="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n" />-->
+		</layout>
+	</appender>
+	
+	<appender name="QUEEN-BEE-INFO" class="org.apache.log4j.rolling.RollingFileAppender">
+		<param name="Threshold" value="INFO" />
+		<rollingPolicy class="org.apache.log4j.rolling.TimeBasedRollingPolicy">
+			<param name="FileNamePattern" value=" C:/Users/DerKaiser/Desktop/QUEEN-BEE/log/info.%d{yyyy-MM-dd}.log" />
+			<param name="ActiveFileName" value=" C:/Users/DerKaiser/Desktop/QUEEN-BEE/log/info.log" />
+		</rollingPolicy>
+		<triggeringPolicy class="org.apache.log4j.rolling.SizeBasedTriggeringPolicy">
+			<param name="MaxFileSize" value="10240000" />
+		</triggeringPolicy>
+		<layout class="org.apache.log4j.EnhancedPatternLayout">
+			<param name="ConversionPattern"
+			value="%d{yyyy-MM-dd HH:mm:ss:}%r [%-5p] - %m%n" />
+				<!--value="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n" />-->
+		</layout>
+	</appender>
+	
+	<logger name="com.queenbee">
+		<level value = "DEBUG"/>
+		<appender-ref ref="QUEEN-BEE-INFO"/>
+		<appender-ref ref="QUEEN-BEE-DEBUG" />
+    </logger>
+	
+	<root>
+		<level value="ERROR" />
+		<appender-ref ref="QUEEN-BEE-ERROR" />
+	</root>
+
+</log4j:configuration>

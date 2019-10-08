@@ -1,0 +1,1 @@
+-Dlog4j.configuration=file:E:\Belajar\queen-bee-akka\src\main\resources\queen-bee.xml
