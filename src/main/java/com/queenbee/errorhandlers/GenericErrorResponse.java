@@ -1,11 +1,13 @@
 package com.queenbee.errorhandlers;
 
-import akka.http.javadsl.server.Route;
+import akka.http.javadsl.model.HttpResponse;
+
+import java.util.concurrent.CompletionStage;
 
 public interface GenericErrorResponse {
-    Route getPageNotFound();
-    Route getBadRequest();
-    Route getUnAuthorized();
-    Route getForbidden();
-    Route getInternalServerError();
+    CompletionStage<HttpResponse> getPageNotFound();
+    CompletionStage<HttpResponse> getBadRequest();
+    CompletionStage<HttpResponse> getUnAuthorized();
+    CompletionStage<HttpResponse> getForbidden();
+    CompletionStage<HttpResponse> getInternalServerError();
 }

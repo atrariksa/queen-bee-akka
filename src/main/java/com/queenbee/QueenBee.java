@@ -2,30 +2,25 @@ package com.queenbee;
 
 import static akka.pattern.Patterns.gracefulStop;
 
-import akka.NotUsed;
 import akka.actor.*;
+import akka.event.LoggingAdapter;
 import akka.http.javadsl.ConnectHttp;
 import akka.http.javadsl.Http;
+import akka.http.javadsl.IncomingConnection;
 import akka.http.javadsl.ServerBinding;
 import akka.http.javadsl.model.HttpRequest;
-import akka.http.javadsl.model.HttpResponse;
-import akka.http.javadsl.server.AllDirectives;
-import akka.http.javadsl.server.Route;
-import akka.routing.FromConfig;
 import akka.stream.ActorMaterializer;
 import akka.stream.javadsl.Flow;
-import com.queenbee.controllers.HomeController;
+import akka.stream.javadsl.Sink;
+import akka.stream.javadsl.Source;
+import com.queenbee.actors.PathMapper;
 import com.queenbee.errorhandlers.ErrorHandler;
-import com.queenbee.workers.*;
 import com.typesafe.config.Config;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
 import com.queenbee.actors.MasterActor;
 import com.typesafe.config.ConfigFactory;
@@ -36,9 +31,7 @@ import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 
-//import javax.inject.Inject;
-
-public class QueenBee extends AllDirectives {
+public class QueenBee {
 	
 	private static final Logger logger = LoggerFactory.getLogger(QueenBee.class);
 	private static String tag = "";//application name
@@ -48,63 +41,41 @@ public class QueenBee extends AllDirectives {
 	private ActorSystem system;
 	private ActorRef master;
 	private Config config;
-	private List<Route> routes = new ArrayList<>();
+	private CompletionStage<ServerBinding> serverBindingFuture;
+	private final String appName = "queenbee";
+	private final String endpoints = "endpoints";
+	private final String coreEngineName = "akka";
+	private final String hostName = "localhost";
+	private Config queenBeeConfig;
+	private Config akkaConfig;
 
 	public QueenBee () {
         this.system = ActorSystem.create(QueenBee.class.getSimpleName());
-//        ActorRef homeController = system.actorOf(Props.create(HomeController.class), "home_worker");
-//        homeController.tell(new Work("Work1"), ActorRef.noSender());
-
-		//style 1 & 2
-        ActorRef actorConsumerTest = system.actorOf(Props.create(ActorConsumerTest.class), "actor_consumer");
-        actorConsumerTest.tell(new Work("Work1"), ActorRef.noSender());
-		actorConsumerTest.tell(new Work("Work2"), ActorRef.noSender());
-		actorConsumerTest.tell(new Work("Work3"), ActorRef.noSender());
-		actorConsumerTest.tell(new Work("Work4"), ActorRef.noSender());
-		actorConsumerTest.tell(new Work("Work5"), ActorRef.noSender());
-		actorConsumerTest.tell(new Work("Work6"), ActorRef.noSender());
-		actorConsumerTest.tell(new Work("Work7"), ActorRef.noSender());
-
-
 		final Http http = Http.get(system);
-
 		final ActorMaterializer materializer = ActorMaterializer.create(system);
+		final LoggingAdapter loggingAdapter = system.log();
+		System.out.println("loggingAdapter.isInfoEnabled() : " + loggingAdapter.isInfoEnabled());
+		Source<IncomingConnection, CompletionStage<ServerBinding>> serverSource =
+				http.bind(ConnectHttp.toHost(hostName, 9789));
 
-		logger.info(tag + "materializer.supervisor().toString() : " + materializer.supervisor().toString());
-
-		//In order to access all directives we need an instance where the routes are define.
-//		QueenBee app = new QueenBee();
-
-		ErrorHandler errorHandler = new ErrorHandler(this);
-
-		final Flow<HttpRequest, HttpResponse, NotUsed> routeFlow = this.createRoute(errorHandler).flow(system, materializer);
-		final CompletionStage<ServerBinding> binding = http.bindAndHandle(routeFlow,
-				ConnectHttp.toHost("localhost", 9789), materializer);
-
-		System.out.println("Server online at http://localhost:9789/\nPress RETURN to stop...");
-		this.config = system.settings().config().getConfig("akka");
+		ErrorHandler errorHandler = new ErrorHandler();
 		tag = "[" + system.name() + "] ";
-		logger.info(tag + this.config);
+		akkaConfig = system.settings().config().getConfig(coreEngineName);
+		queenBeeConfig = system.settings().config().getConfig(appName);
+
+		PathMapper pathMapper = new PathMapper(errorHandler, queenBeeConfig);
+
+		serverBindingFuture = serverSource.to(Sink.foreach(connection -> {
+			System.out.println("Accepted new connection from " + connection.remoteAddress());
+			connection.handleWith(Flow.of(HttpRequest.class).mapAsync(1, pathMapper.mapAsyncHandler()), materializer);
+		})).run(materializer);
 		try {
-			System.in.read(); // let it run until user presses return
-		} catch (IOException e) {
-			e.printStackTrace();
+			System.in.read();
 		}
+		catch (Exception e) {
 
-		binding
-				.thenCompose(ServerBinding::unbind) // trigger unbinding from the port
-				.thenAccept(unbound -> system.terminate()); // and shutdown when done
-
+		}
     }
-    public void addRoute(Route route) {
-		routes.add(route);
-	}
-	private Route createRoute(ErrorHandler errorHandler) {
-		return concat(
-				path("hello", () ->
-						get(() ->
-								errorHandler.getBadRequest())));
-	}
 
 //    @Inject()
 	public QueenBee(Config config) {
@@ -132,7 +103,6 @@ public class QueenBee extends AllDirectives {
                 } catch (Exception ex) {
                     logger.error("Normal shutdown/kill failed ", ex);
                 }
-
                 Runtime.getRuntime().removeShutdownHook(this);
                 System.exit(0);
             }
@@ -160,7 +130,7 @@ public class QueenBee extends AllDirectives {
 		} catch (Exception e) {
 			logger.error(tag + "System Failed to Start.." + e.toString());
 		}
-		logger.debug("Application is complete, goodbye...");
+		logger.info("Application has been terminated..");
 		Runtime.getRuntime().removeShutdownHook(shutdownThread);
 		System.exit(0);
     }
@@ -181,13 +151,31 @@ public class QueenBee extends AllDirectives {
     @SuppressWarnings("deprecation")
 	public void destroy() throws Exception {
 		try {
-			Future<Boolean> stopped = gracefulStop(master, Duration.create(LIMIT_STOP_DURATION, TimeUnit.SECONDS));
-			Await.result(stopped, Duration.create(LIMIT_STOP_DURATION, TimeUnit.SECONDS));
-			logger.info(tag + "Shutdown..");
+			serverBindingFuture
+				.thenCompose(serverBinding -> {
+					logger.info(tag + "Unbinding..");
+					return serverBinding.unbind();
+				}) // trigger unbinding from the port
+				.thenAccept(unbound -> {
+					Future<Boolean> stopped = gracefulStop(master, Duration.create(LIMIT_STOP_DURATION, TimeUnit.SECONDS));
+					try {
+						Await.result(stopped, Duration.create(LIMIT_STOP_DURATION, TimeUnit.SECONDS));
+					} catch (Exception e) {
+						logger.error("Failed to gracefully stop master actor..");
+					}
+					system.terminate();
+					logger.info(tag + "Terminating system..");
+				}).exceptionally(throwable -> {
+					logger.error(tag + throwable.getLocalizedMessage());
+					return null;
+				}
+			).whenComplete((action, throwable)->{
+				logger.info(tag + "bye bye..");
+				isRunning = false;
+			}); // and shutdown when done
 		} catch (Exception ex) {
 			logger.error(tag + "Failed to shutdown properly.."+ex);
 		}
-		system.terminate();
         isRunning = false;
     }
 }
