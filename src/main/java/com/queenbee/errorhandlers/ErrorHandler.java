@@ -1,6 +1,7 @@
 package com.queenbee.errorhandlers;
 
 import akka.http.javadsl.model.HttpResponse;
+import akka.http.javadsl.model.StatusCodes;
 import com.queenbee.http.components.HttpResponseBuilder;
 
 import java.util.Map;
@@ -12,7 +13,7 @@ public class ErrorHandler extends AbstractErrorHandler implements CustomErrorHan
     @Override
     public CompletionStage<HttpResponse> getPageNotFound(String body, Map<String, String> headers) {
         CompletionStage<HttpResponse> httpResponseCompletionStage = CompletableFuture.supplyAsync(
-                ()-> HttpResponseBuilder.build(404, body, headers)
+                ()-> HttpResponseBuilder.build(StatusCodes.NOT_FOUND, body, headers)
         );
         return httpResponseCompletionStage;
     }
@@ -20,7 +21,7 @@ public class ErrorHandler extends AbstractErrorHandler implements CustomErrorHan
     @Override
     public CompletionStage<HttpResponse> getBadRequest(String body, Map<String, String> headers) {
         CompletionStage<HttpResponse> httpResponseCompletionStage = CompletableFuture.supplyAsync(
-                ()-> HttpResponseBuilder.build(400, body, headers)
+                ()-> HttpResponseBuilder.build(StatusCodes.BAD_REQUEST, body, headers)
         );
         return httpResponseCompletionStage;
     }
@@ -28,7 +29,7 @@ public class ErrorHandler extends AbstractErrorHandler implements CustomErrorHan
     @Override
     public CompletionStage<HttpResponse> getUnAuthorized(String body, Map<String, String> headers) {
         CompletionStage<HttpResponse> httpResponseCompletionStage = CompletableFuture.supplyAsync(
-                ()-> HttpResponseBuilder.build(401, body, headers)
+                ()-> HttpResponseBuilder.build(StatusCodes.UNAUTHORIZED, body, headers)
         );
         return httpResponseCompletionStage;
     }
@@ -36,7 +37,7 @@ public class ErrorHandler extends AbstractErrorHandler implements CustomErrorHan
     @Override
     public CompletionStage<HttpResponse> getForbidden(String body, Map<String, String> headers) {
         CompletionStage<HttpResponse> httpResponseCompletionStage = CompletableFuture.supplyAsync(
-                ()-> HttpResponseBuilder.build(403, body, headers)
+                ()-> HttpResponseBuilder.build(StatusCodes.FORBIDDEN, body, headers)
         );
         return httpResponseCompletionStage;
     }
@@ -44,7 +45,7 @@ public class ErrorHandler extends AbstractErrorHandler implements CustomErrorHan
     @Override
     public CompletionStage<HttpResponse> getInternalServerError(String body, Map<String, String> headers) {
         CompletionStage<HttpResponse> httpResponseCompletionStage = CompletableFuture.supplyAsync(
-                ()-> HttpResponseBuilder.build(500, body, headers)
+                ()-> HttpResponseBuilder.build(StatusCodes.INTERNAL_SERVER_ERROR, body, headers)
         );
         return httpResponseCompletionStage;
     }

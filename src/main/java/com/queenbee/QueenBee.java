@@ -34,7 +34,7 @@ import scala.concurrent.duration.Duration;
 public class QueenBee {
 	
 	private static final Logger logger = LoggerFactory.getLogger(QueenBee.class);
-	private static String tag = "";//application name
+	private static String tag = "";
 	private static final int LIMIT_STOP_DURATION = 10;
 	private boolean isRunning = false;
 	private CountDownLatch endSignal = new CountDownLatch(1);
@@ -42,10 +42,6 @@ public class QueenBee {
 	private ActorRef master;
 	private Config config;
 	private CompletionStage<ServerBinding> serverBindingFuture;
-	private final String appName = "queenbee";
-	private final String endpoints = "endpoints";
-	private final String coreEngineName = "akka";
-	private final String hostName = "localhost";
 	private Config queenBeeConfig;
 	private Config akkaConfig;
 
@@ -56,12 +52,12 @@ public class QueenBee {
 		final LoggingAdapter loggingAdapter = system.log();
 		System.out.println("loggingAdapter.isInfoEnabled() : " + loggingAdapter.isInfoEnabled());
 		Source<IncomingConnection, CompletionStage<ServerBinding>> serverSource =
-				http.bind(ConnectHttp.toHost(hostName, 9789));
+				http.bind(ConnectHttp.toHost(AppConst.HOST_NAME, 9789));
 
 		ErrorHandler errorHandler = new ErrorHandler();
 		tag = "[" + system.name() + "] ";
-		akkaConfig = system.settings().config().getConfig(coreEngineName);
-		queenBeeConfig = system.settings().config().getConfig(appName);
+		akkaConfig = system.settings().config().getConfig(AppConst.CORE_ENGINE_NAME);
+		queenBeeConfig = system.settings().config().getConfig(AppConst.APP_NAME);
 
 		PathMapper pathMapper = new PathMapper(errorHandler, queenBeeConfig);
 

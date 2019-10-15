@@ -2,6 +2,7 @@ package com.queenbee.actors;
 
 import akka.http.javadsl.model.*;
 import akka.japi.function.Function;
+import com.queenbee.AppConst;
 import com.queenbee.errorhandlers.ErrorHandler;
 import com.queenbee.http.components.HttpResponseBuilder;
 import com.typesafe.config.Config;
@@ -16,7 +17,7 @@ public class PathMapper {
     private ConfigValue endpoints;
     public PathMapper(ErrorHandler errorHandler, Config queenBeeConfig) {
         this.errorHandler = errorHandler;
-        this.endpoints = queenBeeConfig.getValue("endpoints");
+        this.endpoints = queenBeeConfig.getValue(AppConst.ENDPOINTS);
     }
 
     public Function<HttpRequest, CompletionStage<HttpResponse>> mapAsyncHandler() {
