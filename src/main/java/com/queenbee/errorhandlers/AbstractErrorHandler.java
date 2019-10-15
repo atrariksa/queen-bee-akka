@@ -1,52 +1,56 @@
 package com.queenbee.errorhandlers;
+
+import akka.http.javadsl.model.HttpResponse;
 import akka.http.javadsl.model.StatusCode;
-import akka.http.javadsl.server.Route;
 import akka.http.scaladsl.model.StatusCodes;
-import com.queenbee.QueenBee;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 public abstract class AbstractErrorHandler implements GenericErrorResponse {
 
-    private final QueenBee app;
-
-    public AbstractErrorHandler(QueenBee app) {
-        this.app = app;
-    }
-
     @Override
-    public Route getPageNotFound() {
+    public CompletionStage<HttpResponse> getPageNotFound() {
         StatusCode statusCode = new StatusCodes.ClientError(404, "Page Not Found","Page Not Found");
-        CompletionStage<StatusCode> statusCodeCompletableFuture = CompletableFuture.completedFuture(statusCode);
-        return app.completeWithFutureStatus(statusCodeCompletableFuture);
+        CompletionStage<HttpResponse> httpResponse = CompletableFuture.supplyAsync(
+                ()->HttpResponse.create().withStatus(statusCode)
+        );
+        return httpResponse;
     }
 
     @Override
-    public Route getBadRequest() {
+    public CompletionStage<HttpResponse> getBadRequest() {
         StatusCode statusCode = new StatusCodes.ClientError(400, "Bad Request","Bad Request");
-        CompletionStage<StatusCode> statusCodeCompletableFuture = CompletableFuture.completedFuture(statusCode);
-        return app.completeWithFutureStatus(statusCodeCompletableFuture);
+        CompletionStage<HttpResponse> httpResponse = CompletableFuture.supplyAsync(
+                ()->HttpResponse.create().withStatus(statusCode)
+        );
+        return httpResponse;
     }
 
     @Override
-    public Route getUnAuthorized() {
+    public CompletionStage<HttpResponse> getUnAuthorized() {
         StatusCode statusCode = new StatusCodes.ClientError(401, "UnAuthorized","UnAuthorized");
-        CompletionStage<StatusCode> statusCodeCompletableFuture = CompletableFuture.completedFuture(statusCode);
-        return app.completeWithFutureStatus(statusCodeCompletableFuture);
+        CompletionStage<HttpResponse> httpResponse = CompletableFuture.supplyAsync(
+                ()->HttpResponse.create().withStatus(statusCode)
+        );
+        return httpResponse;
     }
 
     @Override
-    public Route getForbidden() {
+    public CompletionStage<HttpResponse> getForbidden() {
         StatusCode statusCode = new StatusCodes.ClientError(403, "Forbidden","Forbidden");
-        CompletionStage<StatusCode> statusCodeCompletableFuture = CompletableFuture.completedFuture(statusCode);
-        return app.completeWithFutureStatus(statusCodeCompletableFuture);
+        CompletionStage<HttpResponse> httpResponse = CompletableFuture.supplyAsync(
+                ()->HttpResponse.create().withStatus(statusCode)
+        );
+        return httpResponse;
     }
 
     @Override
-    public Route getInternalServerError() {
+    public CompletionStage<HttpResponse> getInternalServerError() {
         StatusCode statusCode = new StatusCodes.ClientError(500, "Internal Server Error","Internal Server Error");
-        CompletionStage<StatusCode> statusCodeCompletableFuture = CompletableFuture.completedFuture(statusCode);
-        return app.completeWithFutureStatus(statusCodeCompletableFuture);
+        CompletionStage<HttpResponse> httpResponse = CompletableFuture.supplyAsync(
+                ()->HttpResponse.create().withStatus(statusCode)
+        );
+        return httpResponse;
     }
 }
